@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"strings"
+
 	"golang.org/x/tour/pic"
 	"golang.org/x/tour/wc"
 )
@@ -48,6 +51,42 @@ func fibonacci() func() int {
 	}
 }
 
+type Person struct {
+    Name string
+    Age  int
+}
+
+// what's the difference between *Person and Person?
+// if the param p defined as *Person, the *Person type can call the func String()
+// but the Person type can NOT call the func String()
+func (p *Person) String() string {
+    return fmt.Sprintf("BB __%v (%v years)", p.Name, p.Age)
+}
+
+type Hello struct{}
+
+/*
+func (h Hello) ServeHTTP (w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "Hello")
+}*/
+
+func sum(a []int, c chan int) {
+	sum := 0
+	for _, v := range a {
+		sum += v
+	}
+	c <- sum
+}
+
+func fibonacci2(n int, c chan int) {
+	x, y := 0, 1
+	for i := 0; i < n; i++ {
+		c <- x
+		x, y = y, x+y
+	}
+	close(c)
+}
+
 func main() {
 	fmt.Printf("Hello, world.\n")
 	fmt.Println("Hello, 世界")
@@ -67,4 +106,46 @@ func main() {
 		//fmt.Println(fibonacci())
 		fmt.Println(f())
 	}
+
+	a := Person{"Arthur Dent", 42}
+    z := Person{"Zaphod Beeblebrox", 9001}
+
+	//&z call by referrence, so it can call func String() as type *Person 
+    fmt.Println(a.String(), &z)
+
+	// goroutine and channel
+	nums := []int{7, 2, 8, -9, 4, 0, 19, 72, 12, 28}
+	c := make(chan int)
+	go sum(nums[:len(nums)/2], c)
+	go sum(nums[len(nums)/2:], c)
+	x, y := <- c, <- c
+	fmt.Println(x, y, x+y)
+
+	// range and close for channel
+	ch := make(chan int, 20) // define with channel length 10
+	fmt.Println(ch)
+	go fibonacci2(cap(ch), ch)
+	for i := range ch {
+		fmt.Println(i)
+	}
+
+	// http
+	/*
+	var h Hello
+	err := http.ListenAndServe("localhost:4000", h)
+	if err != nil {
+		log.Fatal(err)
+	}*/
+
+    counts := make(map[string]int)
+    input := bufio.NewScanner(os.Stdin)
+    for input.Scan() {
+        counts[input.Text()]++
+    }
+    // NOTE: ignoring potential errors from input.Err()
+    for line, n := range counts {
+        if n > 1 {
+            fmt.Printf("%d\t%s\n", n, line)
+        }
+    }
 }
