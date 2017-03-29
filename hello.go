@@ -1,13 +1,15 @@
 package main
 
 import (
-	"bufio"
-	"fmt"
-	"os"
-	"strings"
+    "bufio"
+    "database/sql"
+    "fmt"
+    "os"
+    "strings"
+    _ "github.com/go-sql-driver/mysql"
 
-	"golang.org/x/tour/pic"
-	"golang.org/x/tour/wc"
+    "golang.org/x/tour/pic"
+    "golang.org/x/tour/wc"
 )
 
 func Pic(dx, dy int) [][]uint8 {
@@ -148,4 +150,17 @@ func main() {
             fmt.Printf("%d\t%s\n", n, line)
         }
     }
+
+    db, err := sql.Open("mysql", "root:1234@mysql:127.0.0.1")
+    if err != nil {
+        panic(err.Error())
+    }
+
+    defer db.Close()
+
+    err = db.Ping()
+    if err != nil {
+        panic(err.Error())
+    }
+
 }
